@@ -8,11 +8,14 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
+@ApiTags('Comments')
+@ApiBearerAuth()
 @Controller('tickets/:ticketId/comments')
 @UseGuards(JwtAuthGuard)
 export class CommentsController {

@@ -3,8 +3,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { SignupDto } from './dto/signup.dto';
@@ -25,7 +25,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Email already registered');
+      throw new ConflictException('Email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -40,6 +40,7 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
+      role: user.role,
     };
   }
 
@@ -66,16 +67,11 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
+      role: user.role,
     };
 
-    const accessToken = await this.jwtService.signAsync(payload);
-
     return {
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-      },
+      accessToken: await this.jwtService.signAsync(payload),
     };
   }
 }

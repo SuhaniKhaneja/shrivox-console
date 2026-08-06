@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { QueryTicketDto } from './dto/query-ticket.dto';
 
 @Injectable()
 export class TicketsService {
@@ -21,22 +22,75 @@ export class TicketsService {
     });
   }
 
-  async findAllForUser(userId: number) {
-    return await this.prisma.ticket.findMany({
-      where: {
-        createdById: userId,
+  async findAllForUser(
+    userId: number,
+    query: QueryTicketDto,
+  ) {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      priority,
+      category,
+      search,
+      sortBy = 'createdAt',
+      order = 'desc',
+    } = query;
+
+    const where = {
+      createdById: userId,
+
+      ...(status && { status }),
+      ...(priority && { priority }),
+      ...(category && { category }),
+
+      ...(search && {
+        OR: [
+          {
+            title: {
+              contains: search,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            description: {
+              contains: search,
+              mode: 'insensitive' as const,
+            },
+          },
+        ],
+      }),
+    };
+
+    const [tickets, total] = await Promise.all([
+      this.prisma.ticket.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+          [sortBy]: order,
+        },
+      }),
+
+      this.prisma.ticket.count({
+        where,
+      }),
+    ]);
+
+    return {
+      data: tickets,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    };
   }
 
   async findOne(userId: number, ticketId: number) {
     const ticket = await this.prisma.ticket.findUnique({
-      where: {
-        id: ticketId,
-      },
+      where: { id: ticketId },
     });
 
     if (!ticket) {
@@ -57,25 +111,19 @@ export class TicketsService {
     ticketId: number,
     dto: UpdateTicketDto,
   ) {
-    // Ensure the ticket exists and belongs to the logged-in user
     await this.findOne(userId, ticketId);
 
-    return await this.prisma.ticket.update({
-      where: {
-        id: ticketId,
-      },
+    return this.prisma.ticket.update({
+      where: { id: ticketId },
       data: dto,
     });
   }
 
   async remove(userId: number, ticketId: number) {
-    // Ensure the ticket exists and belongs to the logged-in user
     await this.findOne(userId, ticketId);
 
     await this.prisma.ticket.delete({
-      where: {
-        id: ticketId,
-      },
+      where: { id: ticketId },
     });
 
     return {

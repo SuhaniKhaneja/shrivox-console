@@ -7,15 +7,20 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { QueryTicketDto } from './dto/query-ticket.dto';
 import { TicketsService } from './tickets.service';
 
+@ApiTags('Tickets')
+@ApiBearerAuth()
 @Controller('tickets')
 @UseGuards(JwtAuthGuard)
 export class TicketsController {
@@ -27,8 +32,14 @@ export class TicketsController {
   }
 
   @Get()
-  findAll(@Request() req) {
-    return this.ticketsService.findAllForUser(req.user.userId);
+  findAll(
+    @Request() req,
+    @Query() query: QueryTicketDto,
+  ) {
+    return this.ticketsService.findAllForUser(
+      req.user.userId,
+      query,
+    );
   }
 
   @Get(':id')
@@ -45,7 +56,11 @@ export class TicketsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateTicketDto,
   ) {
-    return this.ticketsService.update(req.user.userId, id, dto);
+    return this.ticketsService.update(
+      req.user.userId,
+      id,
+      dto,
+    );
   }
 
   @Delete(':id')
@@ -53,6 +68,9 @@ export class TicketsController {
     @Request() req,
     @Param('id', ParseIntPipe) id: number,
   ) {
-    return this.ticketsService.remove(req.user.userId, id);
+    return this.ticketsService.remove(
+      req.user.userId,
+      id,
+    );
   }
 }
