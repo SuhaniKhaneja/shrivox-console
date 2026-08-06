@@ -6,6 +6,7 @@ import {
 
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
+import { UpdateTicketDto } from './dto/update-ticket.dto';
 
 @Injectable()
 export class TicketsService {
@@ -49,5 +50,36 @@ export class TicketsService {
     }
 
     return ticket;
+  }
+
+  async update(
+    userId: number,
+    ticketId: number,
+    dto: UpdateTicketDto,
+  ) {
+    // Ensure the ticket exists and belongs to the logged-in user
+    await this.findOne(userId, ticketId);
+
+    return await this.prisma.ticket.update({
+      where: {
+        id: ticketId,
+      },
+      data: dto,
+    });
+  }
+
+  async remove(userId: number, ticketId: number) {
+    // Ensure the ticket exists and belongs to the logged-in user
+    await this.findOne(userId, ticketId);
+
+    await this.prisma.ticket.delete({
+      where: {
+        id: ticketId,
+      },
+    });
+
+    return {
+      message: 'Ticket deleted successfully',
+    };
   }
 }
