@@ -40,51 +40,70 @@ enum Source {
 }
 
 model User {
-  id         Int       @id @default(autoincrement())
-  email      String    @unique
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
   password   String
-  role       Role      @default(USER)
+  role       Role     @default(USER)
 
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  tickets    Ticket[]
-  comments   Comment[]
+  tickets     Ticket[]
+  comments    Comment[]
+  attachments Attachment[]
 }
 
 model Ticket {
-  id          Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
 
   title       String
   description String
 
-  status      Status     @default(OPEN)
-  priority    Priority   @default(MEDIUM)
-  category    Category   @default(GENERAL)
-  source      Source     @default(MANUAL)
+  status      Status   @default(OPEN)
+  priority    Priority @default(MEDIUM)
+  category    Category @default(GENERAL)
+  source      Source   @default(MANUAL)
 
   escalatedFromConversationId String?
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   createdById Int
-  createdBy   User       @relation(fields: [createdById], references: [id])
+  createdBy   User @relation(fields: [createdById], references: [id])
 
   comments    Comment[]
+  attachments Attachment[]
 }
 
 model Comment {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
 
   message     String
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   ticketId    Int
-  ticket      Ticket    @relation(fields: [ticketId], references: [id])
+  ticket      Ticket @relation(fields: [ticketId], references: [id])
 
   createdById Int
-  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdBy   User @relation(fields: [createdById], references: [id])
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+
+  filename     String
+  path         String
+  mimetype     String
+  size         Int
+
+  createdAt    DateTime @default(now())
+
+  ticketId      Int
+  ticket        Ticket @relation(fields: [ticketId], references: [id])
+
+  uploadedById  Int
+  uploadedBy    User @relation(fields: [uploadedById], references: [id])
 }

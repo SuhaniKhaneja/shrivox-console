@@ -9,6 +9,8 @@ import { AuthModule } from './auth/auth.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { CommentsModule } from './comments/comments.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AttachmentsModule } from './attachments/attachments.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { DashboardModule } from './dashboard/dashboard.module';
     TicketsModule,
     CommentsModule,
     DashboardModule,
+    AttachmentsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
