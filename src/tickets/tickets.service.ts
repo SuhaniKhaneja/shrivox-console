@@ -5,18 +5,38 @@ import {
 } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { AiService } from '../ai/ai.service';
+
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { QueryTicketDto } from './dto/query-ticket.dto';
 
 @Injectable()
 export class TicketsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly aiService: AiService,
+  ) {}
 
-  async create(userId: number, dto: CreateTicketDto) {
+  async create(
+    userId: number,
+    dto: CreateTicketDto,
+  ) {
+    const category = await this.aiService.categorize(
+      dto.title,
+      dto.description,
+    );
+
+    const priority = await this.aiService.predictPriority(
+      dto.title,
+      dto.description,
+    );
+
     return await this.prisma.ticket.create({
       data: {
         ...dto,
+        category,
+        priority,
         createdById: userId,
       },
     });
@@ -88,13 +108,18 @@ export class TicketsService {
     };
   }
 
-  async findOne(userId: number, ticketId: number) {
+  async findOne(
+    userId: number,
+    ticketId: number,
+  ) {
     const ticket = await this.prisma.ticket.findUnique({
       where: { id: ticketId },
     });
 
     if (!ticket) {
-      throw new NotFoundException('Ticket not found');
+      throw new NotFoundException(
+        'Ticket not found',
+      );
     }
 
     if (ticket.createdById !== userId) {
@@ -119,7 +144,10 @@ export class TicketsService {
     });
   }
 
-  async remove(userId: number, ticketId: number) {
+  async remove(
+    userId: number,
+    ticketId: number,
+  ) {
     await this.findOne(userId, ticketId);
 
     await this.prisma.ticket.delete({
