@@ -16,7 +16,7 @@ type DashboardData = {
   totalTickets?: number;
   openTickets?: number;
   resolvedTickets?: number;
-  tickets?: Ticket[];
+  recentTickets?: Ticket[];
 };
 
 export default function DashboardPage() {
@@ -71,9 +71,9 @@ export default function DashboardPage() {
   }, []);
 
   const filteredTickets = useMemo(() => {
-    if (!data?.tickets) return [];
+    if (!data?.recentTickets) return [];
 
-    return data.tickets.filter((ticket) => {
+    return data.recentTickets.filter((ticket) => {
       const statusMatch =
         statusFilter === 'ALL' ||
         ticket.status === statusFilter;
@@ -242,7 +242,7 @@ export default function DashboardPage() {
 
             <span className="text-sm text-slate-500">
               Showing {filteredTickets.length} of{' '}
-              {data?.tickets?.length ?? 0}
+              {data?.recentTickets?.length ?? 0}
             </span>
           </div>
 
