@@ -60,7 +60,6 @@ Ticket-level collaboration with comments and file attachment management.
 
 ### API / Backend
 - All ticket, comment, attachment, and dashboard routes require a valid JWT (`JwtAuthGuard`)
-- The standalone `/ai/*` endpoints (`categorize`, `priority`, `summary`, `reply`) do **not** have `JwtAuthGuard` applied — they are currently open, unauthenticated routes (see [Engineering Notes](#engineering-notes))
 - Request validation via `class-validator` DTOs with `whitelist`/`transform` enabled globally
 - Auto-generated Swagger docs at `/api`, with bearer-token auth wired in
 
@@ -101,7 +100,6 @@ flowchart TD
 
 **File storage:** attachments are stored on the backend's local filesystem (`./uploads`) with metadata (filename, path, mimetype, size) tracked in Postgres — there's no cloud/object storage integration.
 
-> Note: `docker-compose.yml` also spins up a Redis container, and `ioredis` is listed as a backend dependency, but no code in `src/` currently uses Redis — it isn't wired into any module yet.
 
 ## Request Flow
 
@@ -153,7 +151,7 @@ shrivox-console/
 │   │       └── [id]/page.tsx     # Ticket detail: comments, attachments, AI panel
 │   └── package.json
 ├── test/                    # E2E test config/spec
-└── docker-compose.yml        # Local Postgres + Redis containers
+└── docker-compose.yml        # Local Postgres container
 ```
 
 ## Getting Started
@@ -169,9 +167,8 @@ shrivox-console/
 # from the repo root
 npm install
 
-# start Postgres (and Redis, currently unused by the app) locally
+# start Postgres locally
 docker-compose up -d
-
 # apply Prisma migrations and generate the Prisma client
 npx prisma migrate deploy
 npx prisma generate
@@ -241,6 +238,6 @@ Each backend module has an accompanying Jest spec file; these currently verify t
 ## Engineering Notes
 
 - **Ownership-based authorization**: tickets, comments, and attachments all check `createdById`/`uploadedById` against the requesting user rather than relying on a shared-access or team model — this is a single-tenant-per-user design, not a multi-agent support desk.
-- **`/ai/*` endpoints are currently unauthenticated**: unlike every other controller in the app, `AiController` has no `JwtAuthGuard`, so `categorize`, `priority`, `summary`, and `reply` can be called by anyone with network access to the API. This is worth fixing before any public deployment.
+- All controllers, including AiController, are protected by JwtAuthGuard — the standalone /ai/* endpoints require the same Bearer token as every other route.
 - **AI failure isolation**: every Gemini call is wrapped in a try/catch with an explicit fallback value, so an AI outage degrades ticket creation (falls back to `GENERAL`/`MEDIUM`) instead of failing it.
 - **Local file storage**: attachments live on the server's local disk, which is fine for local development but wouldn't survive a redeploy on most hosting platforms without a persistent volume or a move to object storage. The `uploads/` directory is git-ignored and must be created manually — Multer will not create it on first upload.
