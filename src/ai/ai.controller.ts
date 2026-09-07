@@ -2,8 +2,10 @@ import {
   Body,
   Controller,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
@@ -13,8 +15,11 @@ import { CategorizeTicketDto } from './dto/categorize-ticket.dto';
 import { PriorityDto } from './dto/priority.dto';
 import { SummaryDto } from './dto/summary.dto';
 import { ReplyDto } from './dto/reply.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('AI')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('ai')
 export class AiController {
   constructor(

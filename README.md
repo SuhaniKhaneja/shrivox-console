@@ -182,6 +182,10 @@ mkdir -p uploads
 npm run start:dev
 ```
 
+> **Note:** there is currently no signup page in the frontend UI. Create test 
+> accounts via `POST /auth/signup` through Swagger (http://localhost:3000/api).
+
+
 Create a `.env` file in the project root:
 
 ```env
